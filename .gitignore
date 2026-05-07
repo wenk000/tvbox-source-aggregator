@@ -1,0 +1,17 @@
+node_modules/
+.wrangler/
+.dev.vars
+dist/
+data/
+.env
+.DS_Store
+
+# Claude Code
+.claude/memory/
+.claude/feedback/
+dev-log/
+
+# WorkBuddy / Claude 内部文件
+.claude/
+CLAUDE.md
+docs/
