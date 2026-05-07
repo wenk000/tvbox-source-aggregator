@@ -112,17 +112,74 @@ function getTheme() {
   return localStorage.getItem('theme') || 'dark';
 }
 
+var THEMES = [
+  { id: 'dark',    icon: '\\u2600\\uFE0F',  label: 'Dark',    dot: '#0a0e14' },
+  { id: 'light',   icon: '\\uD83C\\uDF19',  label: 'Light',   dot: '#f4f6f9' },
+  { id: 'sunset',  icon: '\\uD83C\\uDF05',  label: 'Sunset',  dot: '#1a1208' },
+  { id: 'cyber',   icon: '\\u26A1',         label: 'Cyber',   dot: '#08000f' },
+  { id: 'eyecare', icon: '\\uD83C\\uDF3F',  label: 'EyeCare', dot: '#0d1a0d' },
+  { id: 'violet',  icon: '\\uD83D\\uDC8E',  label: 'Violet',  dot: '#140a20' }
+];
+
+function findTheme(id) {
+  for (var i = 0; i < THEMES.length; i++) { if (THEMES[i].id === id) return THEMES[i]; }
+  return THEMES[0];
+}
+
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   var btn = document.getElementById('themeToggle');
-  if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  if (btn) btn.textContent = findTheme(theme).icon;
+  document.querySelectorAll('.theme-dropdown-item').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.theme === theme);
+  });
 }
 
 function toggleTheme() {
-  var next = getTheme() === 'dark' ? 'light' : 'dark';
+  var menu = document.getElementById('themeDropdownMenu');
+  if (menu) {
+    var isOpen = menu.classList.contains('open');
+    document.querySelectorAll('.theme-dropdown-menu').forEach(function(m) { m.classList.remove('open'); });
+    if (!isOpen) menu.classList.add('open');
+    return;
+  }
+  var list = THEMES.map(function(t) { return t.id; });
+  var idx = list.indexOf(getTheme());
+  var next = list[(idx + 1) % list.length];
   localStorage.setItem('theme', next);
   applyTheme(next);
 }
+
+function selectTheme(themeId) {
+  localStorage.setItem('theme', themeId);
+  applyTheme(themeId);
+  document.querySelectorAll('.theme-dropdown-menu').forEach(function(m) { m.classList.remove('open'); });
+}
+
+function initThemeDropdown() {
+  var wrap = document.getElementById('themeDropdown');
+  if (!wrap) return;
+  var cur = findTheme(getTheme());
+  var html = '<div class="theme-dropdown" id="themeDropdownWrap">';
+  html += '<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">' + cur.icon + '</button>';
+  html += '<div class="theme-dropdown-menu" id="themeDropdownMenu">';
+  for (var i = 0; i < THEMES.length; i++) {
+    var t = THEMES[i];
+    var active = t.id === cur.id ? ' active' : '';
+    html += '<div class="theme-dropdown-item' + active + '" data-theme="' + t.id + '" onclick="selectTheme(\\'' + t.id + '\\')">';
+    html += '<span class="theme-dot" style="background:' + t.dot + '"></span>';
+    html += '<span>' + t.icon + ' ' + t.label + '</span>';
+    html += '</div>';
+  }
+  html += '</div></div>';
+  wrap.innerHTML = html;
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.theme-dropdown')) {
+    document.querySelectorAll('.theme-dropdown-menu').forEach(function(m) { m.classList.remove('open'); });
+  }
+});
 
 // 从服务端加载背景设置并应用（所有页面共享）
 function loadBgFromServer() {
@@ -145,7 +202,12 @@ function loadBgFromServer() {
     } else {
       document.body.removeAttribute('data-bg-image');
       document.body.style.background = '';
+      // default：恢复 CSS 默认渐变背景
+      document.body.style.background = 'linear-gradient(180deg, #0a0e14 0%, #0d1420 40%, #0a0e14 100%)';
     }
-  }).catch(function() {});
+  }).catch(function(e) {
+    console.warn('loadBgFromServer error:', e);
+    // CSS 兜底：body 已有默认渐变
+  });
 }
 `;

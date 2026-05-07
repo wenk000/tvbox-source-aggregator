@@ -326,7 +326,7 @@ ${sharedStyles}
     <div class="header-top">
       <div class="header-label" data-i18n="headerLabel">System Monitor</div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">☀️</button>
+        <span id="themeDropdown"></span>
         <button class="lang-toggle" id="langToggle" onclick="doToggleLang()">中文</button>
       </div>
     </div>
@@ -710,6 +710,7 @@ function renderHealthTable(records) {
   }).join('');
 }
 
+initThemeDropdown();
 applyTheme(getTheme());
 applyLang(translations, getLang());
 loadBgFromServer();

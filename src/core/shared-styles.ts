@@ -57,6 +57,114 @@ export const sharedStyles = `
   background:linear-gradient(180deg, #f4f6f9 0%, #eaeff5 40%, #f4f6f9 100%);
 }
 
+/* ─── 日落/暖色 ─────────────────────────────────────── */
+[data-theme="sunset"]{
+  --bg:#1a1208;
+  --surface:#241a0e;
+  --surface-2:#2e2214;
+  --border:#3a2e1e;
+  --border-glow:#5a4428;
+  --green:#e8a040;
+  --green-dim:#e8a04025;
+  --green-glow:#e8a04050;
+  --amber:#f0c060;
+  --amber-dim:#f0c06025;
+  --red:#e05030;
+  --red-dim:#e0503025;
+  --blue:#60b0d0;
+  --blue-dim:#60b0d025;
+  --text:#e0cbb0;
+  --text-dim:#8a7560;
+  --text-bright:#fff5e6;
+  --bg-overlay-opacity:0.85;
+}
+[data-theme="sunset"] body::before,
+[data-theme="sunset"] body::after{opacity:0}
+[data-theme="sunset"] body{
+  background:linear-gradient(180deg, #1a1208 0%, #201508 40%, #1a1208 100%);
+}
+
+/* ─── 赛博朋克 ─────────────────────────────────────── */
+[data-theme="cyber"]{
+  --bg:#08000f;
+  --surface:#12001e;
+  --surface-2:#1a0a2e;
+  --border:#2a1050;
+  --border-glow:#4a1890;
+  --green:#ff2d7b;
+  --green-dim:#ff2d7b22;
+  --green-glow:#ff2d7b44;
+  --amber:#ffcc00;
+  --amber-dim:#ffcc0022;
+  --red:#ff4444;
+  --red-dim:#ff444422;
+  --blue:#00d4ff;
+  --blue-dim:#00d4ff22;
+  --text:#e0d0f0;
+  --text-dim:#7a60a0;
+  --text-bright:#f0eaff;
+  --bg-overlay-opacity:0.82;
+}
+[data-theme="cyber"] body::before,
+[data-theme="cyber"] body::after{opacity:0}
+[data-theme="cyber"] body{
+  background:linear-gradient(180deg, #08000f 0%, #0e0520 40%, #08000f 100%);
+}
+
+/* ─── 护眼/低蓝光 ──────────────────────────────────── */
+[data-theme="eyecare"]{
+  --bg:#0d1a0d;
+  --surface:#142014;
+  --surface-2:#1a2818;
+  --border:#253822;
+  --border-glow:#3a5830;
+  --green:#70c070;
+  --green-dim:#70c07020;
+  --green-glow:#70c07040;
+  --amber:#b8c060;
+  --amber-dim:#b8c06020;
+  --red:#c05050;
+  --red-dim:#c0505020;
+  --blue:#50a080;
+  --blue-dim:#50a08020;
+  --text:#b0c8a8;
+  --text-dim:#5a7050;
+  --text-bright:#d0e8c8;
+  --bg-overlay-opacity:0.85;
+}
+[data-theme="eyecare"] body::before,
+[data-theme="eyecare"] body::after{opacity:0}
+[data-theme="eyecare"] body{
+  background:linear-gradient(180deg, #0d1a0d 0%, #101e10 40%, #0d1a0d 100%);
+}
+
+/* ─── 紫罗兰 ───────────────────────────────────────── */
+[data-theme="violet"]{
+  --bg:#140a20;
+  --surface:#1e1230;
+  --surface-2:#28183e;
+  --border:#3a2458;
+  --border-glow:#5a3880;
+  --green:#c084fc;
+  --green-dim:#c084fc22;
+  --green-glow:#c084fc44;
+  --amber:#f0a0d0;
+  --amber-dim:#f0a0d022;
+  --red:#ff6090;
+  --red-dim:#ff609022;
+  --blue:#80b0ff;
+  --blue-dim:#80b0ff22;
+  --text:#d0c0e8;
+  --text-dim:#8068a0;
+  --text-bright:#f0e8ff;
+  --bg-overlay-opacity:0.84;
+}
+[data-theme="violet"] body::before,
+[data-theme="violet"] body::after{opacity:0}
+[data-theme="violet"] body{
+  background:linear-gradient(180deg, #140a20 0%, #180e28 40%, #140a20 100%);
+}
+
 /* 自定义背景图支持：当 body 有 data-bg-image 属性时启用 */
 body[data-bg-image]{
   background-size:cover !important;
@@ -246,6 +354,51 @@ body::before{
 .theme-toggle:hover{
   border-color:var(--text-dim);
   color:var(--text);
+}
+
+/* 主题下拉菜单 */
+.theme-dropdown{
+  position:relative;
+  display:inline-block;
+}
+.theme-dropdown-menu{
+  display:none;
+  position:absolute;
+  top:calc(100% + 6px);
+  right:0;
+  min-width:150px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  z-index:100;
+  overflow:hidden;
+  animation:fadeSlideDown 0.15s ease-out;
+}
+.theme-dropdown-menu.open{display:block}
+.theme-dropdown-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  cursor:pointer;
+  transition:background 0.15s;
+  font-family:var(--mono);
+  font-size:0.85rem;
+  color:var(--text);
+  white-space:nowrap;
+}
+.theme-dropdown-item:hover{background:var(--surface-2)}
+.theme-dropdown-item.active{color:var(--green);font-weight:600}
+.theme-dropdown-item .theme-dot{
+  width:14px;height:14px;
+  border-radius:50%;
+  flex-shrink:0;
+  border:1px solid var(--border);
+}
+.theme-dropdown-item.active .theme-dot{
+  border-color:var(--green);
+  box-shadow:0 0 6px var(--green-glow);
 }
 
 /* Login overlay */

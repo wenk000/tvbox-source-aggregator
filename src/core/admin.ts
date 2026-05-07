@@ -269,7 +269,7 @@ ${sharedStyles}
     <div class="header-top">
       <div class="header-label" data-i18n="headerLabel">Admin Console</div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">☀️</button>
+        <span id="themeDropdown"></span>
         <button class="lang-toggle" id="langToggle" onclick="doToggleLang()">中文</button>
       </div>
     </div>
@@ -2275,6 +2275,7 @@ function applyBgFromStorage() {
     } else {
       document.body.removeAttribute('data-bg-image');
       document.body.style.background = '';
+      document.body.style.background = 'linear-gradient(180deg, #0a0e14 0%, #0d1420 40%, #0a0e14 100%)';
     }
   }).catch(function() {});
 }
@@ -2436,6 +2437,7 @@ async function saveDedupConfig() {
 }
 
 
+initThemeDropdown();
 applyTheme(getTheme());
 applyLang(translations, getLang());
 </script>
