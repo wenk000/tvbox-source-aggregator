@@ -53,16 +53,23 @@ export async function saveGroupOrder(storage: Storage, cfg: GroupOrderConfig): P
 
 /**
  * 应用分组排序：按照规则顺序重排 sites 数组
+ * 匹配逻辑：关键词同时匹配站点 name 和 key（大小写不敏感）
  */
 export function applyGroupOrder(sites: TVBoxSite[], cfg: GroupOrderConfig): TVBoxSite[] {
   if (!cfg.enabled || cfg.rules.length === 0) return sites;
 
   // 为每个站点找到第一个匹配规则的 index（-1 = 未匹配）
+  // 同时匹配 name 和 key，提高命中率
   function getRuleIndex(site: TVBoxSite): number {
     const nameLower = (site.name || '').toLowerCase();
+    const keyLower = (site.key || '').toLowerCase();
     for (let i = 0; i < cfg.rules.length; i++) {
       const rule = cfg.rules[i];
-      const hit = rule.keywords.some(kw => kw && nameLower.includes(kw.toLowerCase()));
+      const hit = rule.keywords.some(kw => {
+        if (!kw) return false;
+        const kl = kw.toLowerCase();
+        return nameLower.includes(kl) || keyLower.includes(kl);
+      });
       if (hit) return i;
     }
     return -1;

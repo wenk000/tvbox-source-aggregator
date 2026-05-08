@@ -371,6 +371,13 @@ ${sharedStyles}
         <input type="url" id="liveUrl" placeholder="m3u/txt URL" data-i18n-placeholder="liveUrlPh">
         <button class="btn" id="liveAddBtn" onclick="addLive()" data-i18n="add">Add</button>
       </div>
+      <!-- Extended fields for live source -->
+      <div class="add-form" style="margin-top:8px;">
+        <input class="name-input" type="text" id="livePlayerType" placeholder="playerType (default: 2)" title="Player type: -1|0|1|2|10, default 2" style="width:140px;">
+        <input type="text" id="liveUA" placeholder="User-Agent (optional)" style="width:220px;">
+        <input type="text" id="liveEPG" placeholder="EPG URL (optional)" style="width:220px;">
+        <input type="text" id="liveTimeout" placeholder="Timeout ms (optional)" style="width:130px;">
+      </div>
     </div>
 
     <!-- Live list -->
@@ -1141,8 +1148,10 @@ async function loadLives() {
       <div class="source-item">
         <span class="source-tag manual">LIVE</span>
         <div class="source-info">
-          <div class="source-name">\${esc(s.name || 'Unnamed')}</div>
+          <div class="source-name">\${esc(s.name || 'Unnamed')}\${s.playerType ? '<small style=\"opacity:0.6;margin-left:4px;\">pt=' + esc(String(s.playerType)) + '</small>' : ''}</div>
           <div class="source-url">\${esc(s.url)}</div>
+          \${s.ua ? '<div class="source-url" style=\"font-size:11px;opacity:0.5;\">UA: ' + esc(s.ua) + '</div>' : ''}
+          \${s.epg ? '<div class="source-url" style=\"font-size:11px;opacity:0.5;\">EPG: ' + esc(s.epg) + '</div>' : ''}
         </div>
         <div class="source-actions">
           <button class="btn btn-sm btn-danger" onclick="removeLive('\${esc(s.url)}')">\${t('remove')}</button>
@@ -1159,21 +1168,39 @@ async function addLive() {
   if (!url) { $('liveUrl').focus(); return; }
   const name = $('liveName').value.trim() || '';
 
+  // 读取扩展字段
+  const playerTypeRaw = $('livePlayerType').value.trim();
+  const ua = $('liveUA').value.trim() || undefined;
+  const epg = $('liveEPG').value.trim() || undefined;
+  const timeoutRaw = $('liveTimeout').value.trim();
+  const playerType = playerTypeRaw ? parseInt(playerTypeRaw, 10) : undefined;
+  const timeout = timeoutRaw ? parseInt(timeoutRaw, 10) : undefined;
+
   const btn = $('liveAddBtn');
   btn.textContent = t('adding');
   btn.className = 'btn loading';
 
   try {
+    const bodyData: Record<string, unknown> = { name, url };
+    if (playerType != null) bodyData.playerType = playerType;
+    if (ua) bodyData.ua = ua;
+    if (epg) bodyData.epg = epg;
+    if (timeout != null) bodyData.timeout = timeout;
+
     const res = await auth.authFetch('/admin/lives', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, url })
+      body: JSON.stringify(bodyData)
     });
     const d = await res.json();
     if (res.ok) {
       toast(t('liveSourceAdded'));
       $('liveUrl').value = '';
       $('liveName').value = '';
+      $('livePlayerType').value = '';
+      $('liveUA').value = '';
+      $('liveEPG').value = '';
+      $('liveTimeout').value = '';
       loadLives();
     } else {
       toast(d.error || 'Failed to add', 'error');
@@ -2366,9 +2393,16 @@ async function saveGroupOrder(silent = false) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    if (res.ok) {
+      // 排序规则变更后自动触发重新聚合
+      fetch('/refresh', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + (document.getElementById('loginInput')?.value || '') },
+      }).catch(() => {});
+    }
     if (!silent && status) {
       if (res.ok) {
-        status.textContent = '已保存';
+        status.textContent = '已保存，正在重新聚合...';
         status.className = 'status-text success';
         setTimeout(() => { status.textContent = ''; }, 2000);
       } else {

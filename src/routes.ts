@@ -1026,7 +1026,7 @@ export function createApp(deps: AppDeps): Hono {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
-    let body: { name?: string; url?: string };
+    let body: { name?: string; url?: string; playerType?: number; ua?: string; epg?: string; timeout?: number };
     try {
       body = await c.req.json();
     } catch {
@@ -1050,7 +1050,14 @@ export function createApp(deps: AppDeps): Hono {
       return c.json({ error: 'Live source already exists' }, 409);
     }
 
-    entries.push({ name, url });
+    // 构建完整的直播源条目（含扩展字段）
+    const entry: LiveSourceEntry = { name, url };
+    if (body.playerType != null) entry.playerType = body.playerType;
+    if (body.ua) entry.ua = body.ua;
+    if (body.epg) entry.epg = body.epg;
+    if (body.timeout != null) entry.timeout = body.timeout;
+
+    entries.push(entry);
     await storage.put(KV_LIVE_SOURCES, JSON.stringify(entries));
 
     return c.json({ success: true });
@@ -1419,6 +1426,20 @@ export function createApp(deps: AppDeps): Hono {
     }
   });
 
+  // admin 认证读取（前端 loadBgSettings 使用）
+  app.get('/admin/bg-settings', async (c) => {
+    if (!verifyAdmin(c.req.raw, config)) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    const raw = await storage.get(KV_BG_SETTINGS);
+    if (!raw) return c.json({ type: 'default' });
+    try {
+      return c.json(JSON.parse(raw));
+    } catch {
+      return c.json({ type: 'default' });
+    }
+  });
+
   app.put('/admin/bg-settings', async (c) => {
     if (!verifyAdmin(c.req.raw, config)) {
       return c.json({ error: 'Unauthorized' }, 401);
@@ -1440,7 +1461,7 @@ export function createApp(deps: AppDeps): Hono {
     return c.json({ success: true, ...cfg });
   });
 
-    // ─── 刷新 ─────────────────────────────────────────────
+  // ─── 刷新 ─────────────────────────────────────────────
   app.post('/refresh', async (c) => {
     if (config.refreshToken || config.adminToken) {
       const auth = c.req.raw.headers.get('Authorization');

@@ -143,11 +143,19 @@ export async function liveSourcesToTVBoxLives(
       }
     }
 
-    lives.push({
+    const liveEntry: TVBoxLive = {
       name,
       type: 0,
       url,
-    });
+      playerType: entry.playerType ?? 2,  // 默认 playerType=2，TVBox 直播必需
+    };
+
+    // 传递可选扩展字段
+    if (entry.ua) liveEntry.ua = entry.ua;
+    if (entry.epg) liveEntry.epg = entry.epg;
+    if (entry.timeout) liveEntry.timeout = entry.timeout;
+
+    lives.push(liveEntry);
   }
 
   if (workerBaseUrl) {

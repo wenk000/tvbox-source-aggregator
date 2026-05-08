@@ -319,6 +319,8 @@ ${sharedStyles}
   <button class="btn sm secondary" onclick="clearSelection()" data-i18n="batchCancel">Cancel</button>
 </div>
 
+<div id="reaggHint" style="display:none;text-align:center;padding:8px 12px;margin-bottom:8px;border-radius:6px;font-size:0.9rem;font-family:var(--mono);background:rgba(80,250,123,0.1);color:var(--green);border:1px solid rgba(80,250,123,0.2)"></div>
+
 <script>
 ${sharedUi}
 
@@ -620,6 +622,8 @@ async function block(type, id) {
     updateItemDom(type, id, true);
     updateStats();
     updateBatchBar();
+    // 屏蔽后自动触发重新聚合，使屏蔽立即生效
+    await triggerReAggregation('block');
   } catch (e) { alert('Network error'); }
 }
 
@@ -643,6 +647,8 @@ async function unblock(type, id) {
     }
     updateItemDom(type, id, false);
     updateStats();
+    // 取消屏蔽后自动触发重新聚合
+    await triggerReAggregation('unblock');
   } catch (e) { alert('Network error'); }
 }
 
@@ -716,7 +722,38 @@ async function batchBlock() {
     updateStats();
     updateBatchBar();
     document.querySelectorAll('.group-check:checked').forEach(cb => { cb.checked = false; });
+    // 批量屏蔽后自动触发重新聚合
+    await triggerReAggregation('batchBlock');
   } catch (e) { alert('Network error'); }
+}
+
+/**
+ * 触发服务端重新聚合，使黑名单/排序变更立即生效
+ * 显示处理状态提示，不阻塞用户操作
+ */
+async function triggerReAggregation(reason) {
+  const hint = document.getElementById('reaggHint');
+  if (hint) {
+    hint.textContent = '⏳ 正在重新聚合...';
+    hint.style.display = '';
+  }
+  try {
+    const res = await fetch('/refresh', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+    });
+    const d = await res.json();
+    if (d.success) {
+      if (hint) hint.textContent = '✅ 聚合完成，设置已生效';
+      setTimeout(() => { if (hint) hint.style.display = 'none'; }, 3000);
+    } else {
+      if (hint) hint.textContent = '⚠️ ' + (d.error || '聚合失败，请手动刷新');
+      setTimeout(() => { if (hint) hint.style.display = 'none'; }, 5000);
+    }
+  } catch (e) {
+    if (hint) hint.textContent = '⚠️ 网络错误，请手动点击"刷新"按钮';
+    setTimeout(() => { if (hint) hint.style.display = 'none'; }, 5000);
+  }
 }
 
 initThemeDropdown();

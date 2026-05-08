@@ -87,6 +87,11 @@ export interface MacCMSSourceEntry {
 export interface LiveSourceEntry {
   name: string;
   url: string;
+  playerType?: number;  // 播放器类型：-1|0|1|2|10（默认2）
+  ua?: string;           // User-Agent
+  epg?: string;          // EPG节目单地址
+  logo?: string;         // 台标地址
+  timeout?: number;      // 超时时间(毫秒)
 }
 
 // 源条目
